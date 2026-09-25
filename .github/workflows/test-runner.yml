@@ -1,0 +1,23 @@
+name: Test Self Hosted Runner
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-runner:
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Check runner
+        run: |
+          echo "Runner is working"
+          hostname
+          docker --version
+          kubectl version --client
+          minikube status
+          kubectl get nodes
