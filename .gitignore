@@ -1,0 +1,25 @@
+# React dependencies
+node_modules/
+
+# React build output
+build/
+
+# Python virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+

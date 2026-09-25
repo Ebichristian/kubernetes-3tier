@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: backend-deployment
+
+spec:
+  replicas: 3
+
+  selector:
+    matchLabels:
+      app: backend
+
+  template:
+    metadata:
+      labels:
+        app: backend
+
+    spec:
+      containers:
+        - name: backend
+          image: ebichristian/flask:v1
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - secretRef:
+                name: postgres-secret
