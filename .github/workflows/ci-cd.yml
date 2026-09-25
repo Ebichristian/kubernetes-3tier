@@ -1,0 +1,68 @@
+name: Kubernetes CI-CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Verify tools
+        run: |
+          docker --version
+          kubectl version --client
+          minikube status
+
+      - name: Build backend image
+        run: |
+          docker build \
+            --build-arg PYTHON_VERSION=3.13 \
+            -t ebichristian/flask-ci:${{ github.sha }} \
+            backend/
+
+      - name: Build frontend image
+        run: |
+          docker build \
+            --build-arg REACT_APP_VERSION=${{ github.sha }} \
+            -t ebichristian/react-ci:${{ github.sha }} \
+            frontend/
+
+      - name: Load images into Minikube
+        run: |
+          minikube image load ebichristian/flask-ci:${{ github.sha }}
+          minikube image load ebichristian/react-ci:${{ github.sha }}
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s/
+
+      - name: Update application images
+        run: |
+          kubectl set image deployment/backend-deployment \
+            backend=ebichristian/flask-ci:${{ github.sha }}
+
+          kubectl set image deployment/frontend-deployment \
+            frontend=ebichristian/react-ci:${{ github.sha }}
+
+      - name: Wait for deployments
+        run: |
+          kubectl rollout status deployment/backend-deployment --timeout=180s
+          kubectl rollout status deployment/frontend-deployment --timeout=180s
+          kubectl rollout status deployment/nginx-deployment --timeout=180s
+          kubectl rollout status deployment/postgres-deployment --timeout=180s
+
+      - name: Smoke test
+        run: |
+          MINIKUBE_IP=$(minikube ip)
+          NODE_PORT=$(kubectl get svc nginx-service -o jsonpath='{.spec.ports[0].nodePort}')
+
+          curl -fsS "http://${MINIKUBE_IP}:${NODE_PORT}/"
+          curl -fsS "http://${MINIKUBE_IP}:${NODE_PORT}/api/" | grep "Flask App Running"
+
+          echo "Application smoke test passed"
