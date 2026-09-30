@@ -24,3 +24,4 @@ __pycache__/
 .DS_Store
 
 actions-runner/
+k8s/postgres-secret.yaml
