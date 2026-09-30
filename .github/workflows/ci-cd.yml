@@ -57,7 +57,7 @@ jobs:
           kubectl rollout status deployment/nginx-deployment --timeout=180s
           kubectl rollout status deployment/postgres-deployment --timeout=180s
 
-     - name: Smoke test
+      - name: Smoke test
         run: |
           MINIKUBE_IP=$(minikube ip)
           NODE_PORT=$(kubectl get svc nginx-service -o jsonpath='{.spec.ports[0].nodePort}')
@@ -77,4 +77,4 @@ jobs:
             "http://${MINIKUBE_IP}:${NODE_PORT}/api/" \
             | grep "Flask App Running"
 
-            echo "Application smoke test passed"
+          echo "Application smoke test passed"
